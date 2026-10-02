@@ -45,6 +45,14 @@ Dir.chdir(HERE) do
     puts(cmd = "cp ./config.guess #{BUNDLE_PATH}/")
     raise "'#{cmd}' failed" unless system(cmd)
 
+    # Overwrite the CImg.h bundled in pHash v0.9.6 (CImg 1.4.7, released in 2010).
+    # That version's CImg::load_pnm() only handles PNM types P2/P3/P5/P6, so reading
+    # a 1-bit bilevel image (P1/P4), such as an all-white or all-black picture, throws
+    # CImgIOException. That failure surfaces as "Unknown pHash error".
+    # CImg 1.7.0 implements the P1/P4 cases, so ship that version instead.
+    puts(cmd = "cp ./CImg.h #{BUNDLE_PATH}/")
+    raise "'#{cmd}' failed" unless system(cmd)
+
     Dir.chdir(BUNDLE_PATH) do
       puts(cmd = "env CXXFLAGS='#{$CXXFLAGS}' CFLAGS='#{$CFLAGS}' LDFLAGS='#{$LDFLAGS}' ./configure --prefix=#{HERE} --disable-audio-hash --disable-video-hash --disable-shared --with-pic 2>&1")
       raise "'#{cmd}' failed" unless system(cmd)

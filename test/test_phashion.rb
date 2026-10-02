@@ -228,6 +228,29 @@ class TestPhashion < Minitest::Test
     assert_duplicate_with_module_method(jpg, jpg_x)
   end
 
+  # CImg's load_pnm() historically supported only PNM types P2/P3/P5/P6.
+  # A 1-bit bilevel image (an all-white or all-black picture) is written as P4,
+  # which made fingerprint() raise "Unknown pHash error" instead of returning a hash.
+  def test_fingerprint_bilevel_pnm
+    %w[all_white.pbm all_black.pbm].each do |name|
+      image = Phashion::Image.new(File.dirname(__FILE__) + "/pnm/#{name}")
+      fingerprint = image.fingerprint
+      assert_kind_of Integer, fingerprint, "#{name} should produce a fingerprint"
+    end
+  end
+
+  def test_fingerprint_grayscale_pnm
+    image = Phashion::Image.new(File.dirname(__FILE__) + '/pnm/mid_gray.pgm')
+    assert_kind_of Integer, image.fingerprint
+  end
+
+  def test_fingerprint_uniform_png
+    %w[all_white.png all_black.png].each do |name|
+      image = Phashion::Image.new(File.dirname(__FILE__) + "/png/#{name}")
+      assert_kind_of Integer, image.fingerprint, "#{name} should produce a fingerprint"
+    end
+  end
+
   private
 
   def assert_duplicate(a, b)
